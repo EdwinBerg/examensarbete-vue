@@ -1,4 +1,3 @@
-// const { response } = require('express');
 const express = require('express')
 const cors = require('cors');
 const sqlite = require('sqlite3')
@@ -145,11 +144,6 @@ app.post('/SkapaArtikel/',(request, response) => {
             "ItemID": this
         })
     })
-})
-
-
-app.get('/', (request, response) => {
-    response.send('hej')
 })
 
 app.listen(3000, () => {
