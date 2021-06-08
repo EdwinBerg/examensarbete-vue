@@ -334,6 +334,7 @@ export default {
           console.log(result);
           this.updateArticleText = null;
           this.modalShowEditArt = false;
+          this.checkIfValidEdit = false;
           this.Alert(`"${this.currentListItem.text}" har uppdaterats till "${updateArticleText}"`, 'success');
           this.getList();
         }); 

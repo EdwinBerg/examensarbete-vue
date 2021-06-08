@@ -50,9 +50,7 @@ export default {
       fetch('http://localhost:3000/Listor')
       .then(response => response.json())
       .then(result => {
-        console.log(result.rows)
         this.recentlyCreatedList = result.rows[0];
-        console.log(this.recentlyCreatedList)
       });
     },
 
