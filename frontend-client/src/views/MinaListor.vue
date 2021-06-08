@@ -68,9 +68,9 @@
             ></b-form-input>
           </b-form-group>
         </form>
-         <p v-if="checkIfValid" style="text-align: center;">
+         <p v-if="checkIfValidNewList">
           <b-icon class="mr-2" icon="exclamation-triangle-fill" scale="1.5" variant="warning"></b-icon>
-          Du måste skriva in ett nytt namn eller avbryt!
+          Fyll i fältet ovanför eller klicka på avbryt!
         </p>
         <template #modal-footer>          
           <b-button
@@ -112,16 +112,16 @@
             ></b-form-input>
           </b-form-group>
         </form>
-        <p v-if="checkIfValid" style="text-align: center;">
+        <p v-if="checkIfValidEdit">
           <b-icon class="mr-2" icon="exclamation-triangle-fill" scale="1.5" variant="warning"></b-icon>
-          Du måste skriva in ett nytt namn eller avbryt!
+          Fyll i fältet ovanför eller klicka på avbryt!
         </p>
         <template #modal-footer>          
           <b-button
             variant="secondary"
             size="sm"
             class="float-left"
-            @click="modalShowEdit = false; editListName(currentList.id, updateListName)"
+            @click="modalShowEdit = false;"
           >
             Avbryt
           </b-button>
@@ -307,7 +307,8 @@ export default {
       alertType: String,
       alerts: [],
       tasksDone: {},
-      checkIfValid: null
+      checkIfValidEdit: null,
+      checkIfValidNewList: null
     }
   },
   components: {
@@ -346,11 +347,10 @@ export default {
           this.updateListName = null;
           this.modalShowEdit = false;
           this.Alert(`"${this.currentList.list_name}" har uppdaterats till "${updateListName}"`, 'success');
-          this.checkIfValid = null;
           this.getLists();
         }); 
       } else {
-        this.checkIfValid = true;
+        this.checkIfValidEdit = true;
       }
     },
 
@@ -375,7 +375,7 @@ export default {
     },
 
     createNewList(createList) {
-      if(createList !== null) {
+      if(createList !== null || createList === '') {
         console.log(createList, 'skapa');
         fetch('http://localhost:3000/SkapaLista/', {
           body: JSON.stringify({
@@ -392,11 +392,10 @@ export default {
           this.modalShowAdd = false;
           this.getLists();
           this.Alert(`"${this.createList}" har skapats!`, 'success');
-          this.checkIfValid = null;
           this.createList = null;
         }); 
       } else {
-        this.checkIfValid = true;
+        this.checkIfValidNewList = true;
       }
     },
 
@@ -422,6 +421,23 @@ export default {
     this.getLists();
   },
 
+  watch: {
+    modalShowEdit: function(val) {
+      if(val) {
+       this.checkIfValidEdit = false;
+      } else {
+        this.checkIfValidEdit = true;
+      }
+    },
+
+    modalShowAdd: function(val) {
+      if(val) {
+       this.checkIfValidNewList = false;
+      } else {
+        this.checkIfValidNewList = true;
+      }
+    },
+  }
 
 }
 </script>

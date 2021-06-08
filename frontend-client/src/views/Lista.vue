@@ -31,6 +31,10 @@
                       <b-icon @click="createNewArticle(addArticle, $route.params.id)" class="my-btn-icon" icon="plus" scale="1.5" variant="success">Lägg till</b-icon>
                     </b-input-group-append>
                   </b-input-group>
+                      <p v-if="checkIfValidNewArt" style="color: white; margin: 1rem 0 0 0;">
+                    <b-icon class="mr-2" icon="exclamation-triangle-fill" scale="1.5" variant="warning"></b-icon>
+                    Fyll i fältet ovanför!
+                  </p>
                 </b-col>
               </b-row>
             </b-col>
@@ -78,16 +82,16 @@
             ></b-form-input>
           </b-form-group>
         </form>
-        <p v-if="checkIfValid" style="text-align: center;">
+        <p v-if="checkIfValidEdit">
           <b-icon class="mr-2" icon="exclamation-triangle-fill" scale="1.5" variant="warning"></b-icon>
-          Du måste skriva in ett nytt namn eller avbryt!
+          Fyll i fältet ovanför eller klicka på avbryt!
         </p>
         <template #modal-footer>          
           <b-button
             variant="secondary"
             size="sm"
             class="float-left"
-            @click="modalShowEditArt = false"
+            @click="modalShowEditArt = false;"
           >
             Avbryt
           </b-button>
@@ -265,7 +269,8 @@ export default {
       modalShowDeleteArt: false,
       itemsCheckedText: '',
       currentListItem: {},
-      checkIfValid: null
+      checkIfValidEdit: false,
+      checkIfValidNewArt: false
     }
   },
   components: {
@@ -300,10 +305,14 @@ export default {
         .then(response => response.json())
         .then(result => {
           console.log(result);
+          console.log(addArticle);
           this.addArticle = null;
+          this.checkIfValidNewArt = false
           this.getList();
         }); 
-      } 
+      } else {
+        this.checkIfValidNewArt = true
+      }
      
     },
 
@@ -326,11 +335,10 @@ export default {
           this.updateArticleText = null;
           this.modalShowEditArt = false;
           this.Alert(`"${this.currentListItem.text}" har uppdaterats till "${updateArticleText}"`, 'success');
-          this.checkIfValid = null;
           this.getList();
         }); 
       } else {
-        this.checkIfValid = true
+        this.checkIfValidEdit = true
       }
     },
 
@@ -381,7 +389,7 @@ export default {
   },
 
   watch: {
-    listItems: {
+  listItems: {
     handler() {
       this.itemsChecked = this.listItems.filter(x => x.checked === 1).length;
       if(this.itemsChecked / this.listItems.length === 1) {
@@ -393,6 +401,15 @@ export default {
     },
     deep: true
   },
+  
+  modalShowEditArt: function(val) {
+    if(val) {
+      this.checkIfValidEdit = false;
+    } else {
+      this.checkIfValidEdit = true;
+    }
+  },
+
   },
 
   created() {
