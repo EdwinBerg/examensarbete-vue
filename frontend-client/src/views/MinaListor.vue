@@ -53,8 +53,9 @@
         ref="modal"
         title="Skapa ny lista"
         v-model="modalShowAdd"
+        class="modal-title"
       >
-        <form ref="form" @submit.stop.prevent="createNewList(createList); Alert(`${createList} har skapats!`, 'success')">
+        <form ref="form" @submit.stop.prevent="createNewList(createList)">
           <b-form-group
             label="Namn"
             label-for="createList-input"
@@ -67,7 +68,10 @@
             ></b-form-input>
           </b-form-group>
         </form>
-
+         <p v-if="checkIfValid" style="text-align: center;">
+          <b-icon class="mr-2" icon="exclamation-triangle-fill" scale="1.5" variant="warning"></b-icon>
+          Du måste skriva in ett nytt namn eller avbryt!
+        </p>
         <template #modal-footer>          
           <b-button
             variant="secondary"
@@ -82,7 +86,7 @@
             variant="primary"
             size="sm"
             class="float-right"
-            @click="createNewList(createList); Alert(`${createList} har skapats!`, 'success')"
+            @click="createNewList(createList)"
           > 
             Skapa
           </b-button>
@@ -92,10 +96,10 @@
       <!-- edit modal -->
       <b-modal
         ref="modal"
-        title="Byt namn på din lista"
+        :title="`Byt namn på listan   &quot;${currentList.list_name}&quot; `"
         v-model="modalShowEdit"
       >
-        <form ref="form" @submit.stop.prevent="editListName(currentList.id, updateListName); Alert(`${currentList.list_name} har uppdaterats till ${updateListName}`, 'success')">
+        <form ref="form" @submit.stop.prevent="editListName(currentList.id, updateListName)">
           <b-form-group
             label="Nytt namn"
             label-for="updateListName-input"
@@ -108,13 +112,16 @@
             ></b-form-input>
           </b-form-group>
         </form>
-
+        <p v-if="checkIfValid" style="text-align: center;">
+          <b-icon class="mr-2" icon="exclamation-triangle-fill" scale="1.5" variant="warning"></b-icon>
+          Du måste skriva in ett nytt namn eller avbryt!
+        </p>
         <template #modal-footer>          
           <b-button
             variant="secondary"
             size="sm"
             class="float-left"
-            @click="modalShowEdit = false"
+            @click="modalShowEdit = false; editListName(currentList.id, updateListName)"
           >
             Avbryt
           </b-button>
@@ -123,7 +130,7 @@
             variant="primary"
             size="sm"
             class="float-right"
-            @click="editListName(currentList.id, updateListName); Alert(`${currentList.list_name} har uppdaterats till ${updateListName}`, 'success')"
+            @click="editListName(currentList.id, updateListName)"
           >
             Uppdatera
           </b-button>
@@ -133,7 +140,7 @@
       <!-- delete modal -->
       <b-modal
         ref="modal"
-        :title="currentList.list_name"
+        :title="`&quot;${currentList.list_name}&quot;`"
         v-model="modalShowDelete"
       >
         <p>
@@ -154,7 +161,7 @@
             variant="primary"
             size="sm"
             class="float-right"
-            @click="deleteList(currentList.id); Alert(`${currentList.list_name} har tagits bort!`, 'danger')"
+            @click="deleteList(currentList.id); Alert(`&quot;${currentList.list_name}&quot; har tagits bort!`, 'danger')"
           >
             Ja
           </b-button>
@@ -165,12 +172,15 @@
 </template>
 
 <style>
+  .modal-title {
+    text-transform: capitalize;
+  }
+
   .wipe-color-change a{
   position: relative;
   display: inline-block;
   color: white;
   padding-left: 1.7rem;
-  
   }
 
   .wipe-color-change a::before {
@@ -217,6 +227,7 @@
     transition: 0.5s;
     text-align: center;
     transition-timing-function: ease-in;
+    text-transform: capitalize;
   }
 
   .listor-title {
@@ -229,19 +240,7 @@
   .list-group .list-group-item div h5 {
     text-transform: capitalize;
     text-decoration: none;
-    /* border-left: 2px solid #1779ff;
-    padding: 0 0 0 0.5rem;
-    color: #fff; */
   }
-
-  /* .list-group .list-group-item div a:hover {
-    text-decoration: none;
-  }
-
-  .list-group .list-group-item div h5:hover {
-    -webkit-border-stroke: 1px var(--stroke-color);
-    color: #1779ff;
-  } */
 
   .row.lists-layout {
     background-color: #13131fb9;
@@ -307,7 +306,8 @@ export default {
       createList: null,
       alertType: String,
       alerts: [],
-      tasksDone: {}
+      tasksDone: {},
+      checkIfValid: null
     }
   },
   components: {
@@ -322,32 +322,36 @@ export default {
         this.lists = result.rows;
         this.lists.forEach((list, index) => {
           this.getTasksDone(list.id, index);
-          
-         list.created_at_date = moment(list.created_at_date).fromNow();
-         console.log('list',list.created_at_date, moment(list.created_at_date).fromNow());
+          list.created_at_date = moment(moment.utc(list.created_at_date + " " + list.created_at_time).toDate()).fromNow();
         }) 
       });
     },
 
     editListName(listId, updateListName) {
-      console.log(listId, updateListName, 'update');
-      fetch('http://localhost:3000/updateListName/', {
-        body: JSON.stringify({
-          list_name: updateListName,
-          id: listId
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        },
-        method: "PUT"
-      })
-      .then(response => response.json())
-      .then(result => {
-        console.log(result)
-        this.updateListName = null;
-        this.modalShowEdit = false;
-        this.getLists();
-      }); 
+      if(updateListName !== null) {
+        console.log(listId, updateListName, 'update');
+        fetch('http://localhost:3000/updateListName/', {
+          body: JSON.stringify({
+            list_name: updateListName,
+            id: listId
+          }),
+          headers: {
+            "Content-Type": "application/json"
+          },
+          method: "PUT"
+        })
+        .then(response => response.json())
+        .then(result => {
+          console.log(result)
+          this.updateListName = null;
+          this.modalShowEdit = false;
+          this.Alert(`"${this.currentList.list_name}" har uppdaterats till "${updateListName}"`, 'success');
+          this.checkIfValid = null;
+          this.getLists();
+        }); 
+      } else {
+        this.checkIfValid = true;
+      }
     },
 
      deleteList(listId) {
@@ -371,24 +375,29 @@ export default {
     },
 
     createNewList(createList) {
-      console.log(createList, 'skapa');
-      fetch('http://localhost:3000/SkapaLista/', {
-        body: JSON.stringify({
-          list_name: createList
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        },
-        method: "POST"
-      })
-      .then(response => response.json())
-      .then(result => {
-        console.log(result);
-        this.modalShowAdd = false;
-        this.createList = null;
-        this.getLists();
-        
-      }); 
+      if(createList !== null) {
+        console.log(createList, 'skapa');
+        fetch('http://localhost:3000/SkapaLista/', {
+          body: JSON.stringify({
+            list_name: createList
+          }),
+          headers: {
+            "Content-Type": "application/json"
+          },
+          method: "POST"
+        })
+        .then(response => response.json())
+        .then(result => {
+          console.log(result);
+          this.modalShowAdd = false;
+          this.getLists();
+          this.Alert(`"${this.createList}" har skapats!`, 'success');
+          this.checkIfValid = null;
+          this.createList = null;
+        }); 
+      } else {
+        this.checkIfValid = true;
+      }
     },
 
     getTasksDone(listDid, index) {

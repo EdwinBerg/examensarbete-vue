@@ -67,9 +67,6 @@ body::after {
     position: relative;
     box-shadow: 20px 20px 50px rgba(0, 0, 0, 0.5);
     color: #fff;
-    border-top: 1.5px solid rgba(255, 255, 255, 0.5) !important;
-    border-left: 1.5px solid rgba(255, 255, 255, 0.5) !important;
-    border-radius: 15px;
     background-color:rgba(204, 204, 204, 0.1);
     backdrop-filter: blur(5px);
 }
@@ -106,7 +103,7 @@ body::after {
 .card .card-body {
     position:relative;
     overflow:hidden;
-    border-radius: 15px;
+    border-radius: 6px;
 }
 
 .card .card-body span {
@@ -126,7 +123,7 @@ body::after {
     position: absolute;
     top: 0;
     left: 0;
-    width:100%;
+    width: 100%;
     height:0.5rem;
     background: linear-gradient(to right, transparent, #1779ff  );
     animation: animate1 2s linear infinite;   

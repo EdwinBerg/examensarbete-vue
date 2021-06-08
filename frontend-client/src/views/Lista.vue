@@ -62,10 +62,10 @@
       <!-- edit modal -->
       <b-modal
         ref="modal"
-        title="Byt namn på din artikel"
+        :title="`Byt namn på &quot;${currentListItem.text}&quot;`"
         v-model="modalShowEditArt"
       >
-        <form ref="form" @submit.stop.prevent="updateArticle(updateArticleText, currentListItem.id); Alert(`${currentList.text} har uppdaterats till ${updateArticleText}`, 'success')">
+        <form ref="form" @submit.stop.prevent="updateArticle(updateArticleText, currentListItem.id); Alert(`&quot;${currentList.text}&quot; har uppdaterats till &quot;${updateArticleText}&quot;`, 'success')">
           <b-form-group
             label="Nytt namn"
             label-for="updateArticleText-input"
@@ -78,6 +78,10 @@
             ></b-form-input>
           </b-form-group>
         </form>
+        <p v-if="checkIfValid" style="text-align: center;">
+          <b-icon class="mr-2" icon="exclamation-triangle-fill" scale="1.5" variant="warning"></b-icon>
+          Du måste skriva in ett nytt namn eller avbryt!
+        </p>
         <template #modal-footer>          
           <b-button
             variant="secondary"
@@ -91,7 +95,7 @@
             variant="primary"
             size="sm"
             class="float-right"
-            @click="updateArticle(updateArticleText, currentListItem.id); Alert(`${currentListItem.text} har uppdaterats till ${updateArticleText}`, 'success')"
+            @click="updateArticle(updateArticleText, currentListItem.id)"
           >
             Uppdatera
           </b-button>
@@ -100,11 +104,11 @@
         <!-- delete modal -->
     <b-modal 
       ref="modal"
-      :title="currentListItem.text"
+      :title="`Ta bort &quot;${currentListItem.text}&quot;`"
       v-model="modalShowDeleteArt"
     >
       <p>
-        Är du säker på att du vill ta bort listan?
+        Är du säker på att du vill ta bort artikeln?
       </p>
 
       <template #modal-footer>          
@@ -121,7 +125,7 @@
           variant="primary"
           size="sm"
           class="float-right"
-           @click="deleteArticle(currentListItem.id); Alert(`${currentListItem.text} har tagits bort`, 'danger')"
+           @click="deleteArticle(currentListItem.id); Alert(`&quot;${currentListItem.text}&quot; har tagits bort`, 'danger')"
         >
           Ja
         </b-button>
@@ -216,8 +220,7 @@
   bottom: 0;
   left: 0;
   pointer-events: none;
-  /* background-image: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255, 0.35) 90%); */
-   backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
   width: 96%;
   height: 6rem;
 }
@@ -261,7 +264,8 @@ export default {
       modalShowEditArt: false,
       modalShowDeleteArt: false,
       itemsCheckedText: '',
-      currentListItem: {}
+      currentListItem: {},
+      checkIfValid: null
     }
   },
   components: {
@@ -280,45 +284,54 @@ export default {
     },
 
     createNewArticle(addArticle, listId) {
-      console.log(addArticle, 'skapa ny artikel');
-      fetch('http://localhost:3000/SkapaArtikel/', {
-        body: JSON.stringify({
-          "text": addArticle,
-          "listDid": listId,
-          "checked": 0
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        },
-        method: "POST"
-      })
-      .then(response => response.json())
-      .then(result => {
-        console.log(result);
-        this.addArticle = null;
-        this.getList();
-      }); 
+      if(addArticle !== null) {
+        console.log(addArticle, 'skapa ny artikel');
+        fetch('http://localhost:3000/SkapaArtikel/', {
+          body: JSON.stringify({
+            "text": addArticle,
+            "listDid": listId,
+            "checked": 0
+          }),
+          headers: {
+            "Content-Type": "application/json"
+          },
+          method: "POST"
+        })
+        .then(response => response.json())
+        .then(result => {
+          console.log(result);
+          this.addArticle = null;
+          this.getList();
+        }); 
+      } 
+     
     },
 
     updateArticle(updateArticleText, articleId) {
-      console.log(updateArticleText, 'uppdatera artikel text');
-      fetch('http://localhost:3000/updateArticle/', {
-        body: JSON.stringify({
-          "text": updateArticleText,
-          "id": articleId,
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        },
-        method: "PUT"
-      })
-      .then(response => response.json())
-      .then(result => {
-        console.log(result);
-        this.updateArticleText = null;
-        this.modalShowEditArt = false;
-        this.getList();
-      }); 
+      if(updateArticleText !== null) {
+        console.log(updateArticleText, 'uppdatera artikel text');
+        fetch('http://localhost:3000/updateArticle/', {
+          body: JSON.stringify({
+            "text": updateArticleText,
+            "id": articleId,
+          }),
+          headers: {
+            "Content-Type": "application/json"
+          },
+          method: "PUT"
+        })
+        .then(response => response.json())
+        .then(result => {
+          console.log(result);
+          this.updateArticleText = null;
+          this.modalShowEditArt = false;
+          this.Alert(`"${this.currentListItem.text}" har uppdaterats till "${updateArticleText}"`, 'success');
+          this.checkIfValid = null;
+          this.getList();
+        }); 
+      } else {
+        this.checkIfValid = true
+      }
     },
 
        deleteArticle(articleId) {
